@@ -1,0 +1,33 @@
+// Input example in n8n:
+// {
+//   "summary": "The invoice includes a purchase of a MacBook Pro 14-inch M3 with 512GB storage along with an accessory and a care plan. The care plan provides extended warranty coverage for the MacBook Pro.",
+//   "products": "MacBook Pro 14-inch M3.512GB, USB-C to USB Adapter"
+// }
+
+const input = $input.first().json.output;
+
+const parsed = JSON.parse(input);
+
+// Extract summary and products
+const summary = parsed.summary || '';
+const productsRaw = parsed.products || '';
+
+// Format products (ensure clean separation by comma)
+const productsList = productsRaw
+  .split(',')
+  .map(p => p.trim())
+  .join(', ');
+
+// Access the n8n execution resume URL
+const resumeUrl = $execution.resumeUrl;
+
+// Return final JSON
+return [
+  {
+    json: {
+      summary: summary,
+      products: productsList,
+      resumeUrl: resumeUrl
+    }
+  }
+];

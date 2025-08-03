@@ -1,0 +1,766 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI Claims Portal</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            height: 100vh;
+            display: flex;
+            background-color: #ffffff;
+        }
+
+        .sidebar {
+            width: 33.333%;
+            background-color: #f8f9fa;
+            border-right: 1px solid #e9ecef;
+            padding: 2rem;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .sidebar h2 {
+            font-size: 1.1rem;
+            font-weight: 500;
+            color: #6c757d;
+            text-transform: capitalize;
+            margin-bottom: 1.5rem;
+        }
+
+        .status-content {
+            flex: 1;
+            color: #6c757d;
+            font-size: 0.9rem;
+        }
+
+        .main-panel {
+            width: 66.667%;
+            padding: 3rem;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            text-align: center;
+        }
+
+        .portal-title {
+            font-size: 2.5rem;
+            font-weight: 700;
+            color: #212529;
+            margin-bottom: 3rem;
+            letter-spacing: -0.02em;
+        }
+
+        .new-request-btn {
+            background-color: #000000;
+            color: #ffffff;
+            border: none;
+            padding: 1rem 2rem;
+            font-size: 1rem;
+            font-weight: 500;
+            border-radius: 25px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            min-width: 160px;
+        }
+
+        .new-request-btn:hover {
+            background-color: #333333;
+            transform: translateY(-1px);
+        }
+
+        .new-request-btn:active {
+            transform: translateY(0);
+        }
+
+        /* Hidden sections for later steps */
+        .upload-section,
+        .progress-section,
+        .results-section {
+            display: none;
+        }
+
+        .upload-area {
+            border: 2px dashed #dee2e6;
+            border-radius: 8px;
+            padding: 3rem;
+            margin: 2rem 0;
+            background-color: #f8f9fa;
+            transition: border-color 0.2s ease;
+        }
+
+        .upload-area:hover {
+            border-color: #adb5bd;
+        }
+
+        .upload-area.dragover {
+            border-color: #007bff;
+            background-color: #e3f2fd;
+        }
+
+        .file-input {
+            display: none;
+        }
+
+        .choose-file-btn {
+            background-color: #000000;
+            color: white;
+            border: none;
+            padding: 0.75rem 2rem;
+            border-radius: 25px;
+            cursor: pointer;
+            font-size: 0.9rem;
+            font-weight: 500;
+            transition: all 0.2s ease;
+        }
+
+        .choose-file-btn:hover {
+            background-color: #333333;
+            transform: translateY(-1px);
+        }
+
+        .submit-btn {
+            background-color: #000000;
+            color: white;
+            border: none;
+            padding: 1rem 3rem;
+            border-radius: 25px;
+            cursor: pointer;
+            font-size: 1rem;
+            font-weight: 500;
+            margin-top: 3rem;
+            transition: all 0.2s ease;
+        }
+
+        .submit-btn:hover:not(:disabled) {
+            background-color: #333333;
+            transform: translateY(-1px);
+        }
+
+        .submit-btn:disabled {
+            background-color: #6c757d;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .progress-bar {
+            width: 100%;
+            height: 8px;
+            background-color: #e9ecef;
+            border-radius: 4px;
+            overflow: hidden;
+            margin: 1rem 0;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background-color: #28a745;
+            width: 0%;
+            transition: width 0.3s ease;
+        }
+
+        .status-item {
+            padding: 0.5rem 0;
+            border-bottom: 1px solid #e9ecef;
+            font-size: 0.85rem;
+        }
+
+        .status-item:last-child {
+            border-bottom: none;
+        }
+
+        .status-timestamp {
+            color: #6c757d;
+            font-size: 0.75rem;
+        }
+
+        .product-selection-section {
+            display: none;
+        }
+
+        .product-btn {
+            background-color: #f8f9fa;
+            border: 2px solid #dee2e6;
+            color: #212529;
+            padding: 1rem 1.5rem;
+            margin: 0.5rem;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 0.9rem;
+            font-weight: 500;
+            transition: all 0.2s ease;
+            display: inline-block;
+        }
+
+        .product-btn:hover {
+            border-color: #adb5bd;
+            background-color: #e9ecef;
+        }
+
+        .product-btn.selected {
+            background-color: #000000;
+            color: #ffffff;
+            border-color: #000000;
+        }
+
+        .product-btn.selected:hover {
+            background-color: #333333;
+            border-color: #333333;
+        }
+
+        .support-type-btn {
+            background-color: #f8f9fa;
+            border: 2px solid #dee2e6;
+            color: #212529;
+            padding: 1rem 1.5rem;
+            margin: 0.5rem;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 0.9rem;
+            font-weight: 500;
+            transition: all 0.2s ease;
+            display: inline-block;
+            min-width: 200px;
+            text-align: left;
+        }
+        .support-type-btn.selected {
+            background-color: #000000;
+            color: #ffffff;
+            border-color: #000000;
+        }
+        .support-type-btn.selected:hover {
+            background-color: #333333;
+            border-color: #333333;
+        }        
+
+        @media (max-width: 768px) {
+            body {
+                flex-direction: column;
+            }
+            
+            .sidebar,
+            .main-panel {
+                width: 100%;
+            }
+            
+            .portal-title {
+                font-size: 2rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Status Sidebar -->
+    <div class="sidebar">
+        <h2>Status</h2>
+        <div class="status-content" id="statusContent">
+            <div class="status-item">
+                <div>Ready to process claims</div>
+                <div class="status-timestamp">System online</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Main Panel -->
+    <div class="main-panel">
+        <!-- Initial Landing -->
+        <div class="landing-section" id="landingSection">
+            <h1 class="portal-title">AI Claims Portal</h1>
+            <button class="new-request-btn" onclick="startNewRequest()">New Request</button>
+        </div>
+
+        <!-- File Upload Section (Hidden initially) -->
+        <div class="upload-section" id="uploadSection">
+            <h1 class="portal-title">AI Claims Portal</h1>
+            <div class="upload-area" id="uploadArea">
+                <div style="text-align: center;">
+                    <div style="font-size: 1.1rem; margin-bottom: 2rem; color: #6c757d;">
+                        Drag and drop your invoice here
+                    </div>
+                    <input type="file" id="fileInput" class="file-input" multiple accept=".pdf,.jpg,.jpeg,.png,.doc,.docx">
+                    <button class="choose-file-btn" onclick="document.getElementById('fileInput').click()">
+                        Choose File
+                    </button>
+                </div>
+            </div>
+            <button class="submit-btn" onclick="submitClaim()" id="submitBtn" disabled>
+                Submit
+            </button>
+        </div>
+
+        <!-- Progress Section (Hidden initially) -->
+        <div class="progress-section" id="progressSection">
+            <h2 style="margin-bottom: 2rem; color: #212529;">Processing Claim</h2>
+            <div class="progress-bar">
+                <div class="progress-fill" id="progressFill"></div>
+            </div>
+            <div id="progressText" style="margin-top: 1rem; color: #6c757d;">
+                Analyzing documents...
+            </div>
+        </div>
+
+        <!-- Product Selection Section (Hidden initially) -->
+        <div class="product-selection-section" id="productSelectionSection">
+            <h1 class="portal-title">Select Products</h1>
+            <div id="summaryContent" style="background: #f8f9fa; padding: 1.5rem; border-radius: 8px; margin-bottom: 2rem; text-align: left; max-width: 600px;">
+                <!-- Summary will be populated here -->
+            </div>
+            <div id="productButtons" style="margin-bottom: 2rem;">
+                <!-- Product buttons will be populated here -->
+            </div>
+            <div id="supportTypeButtons" style="margin-bottom: 2rem;">
+                <!-- Support Type buttons will be populated here -->
+            </div>
+            <button class="submit-btn" onclick="submitProductSelection()" id="productSubmitBtn" disabled>
+                Submit Selection
+            </button>
+        </div>
+
+        <!-- Results Section (Hidden initially) -->
+        <div class="results-section" id="resultsSection">
+            <h2 style="margin-bottom: 2rem; color: #212529;">Claim Results</h2>
+            <div id="resultsContent" style="max-width: 600px; text-align: left;">
+                <!-- Results will be populated here -->
+            </div>
+            <button class="new-request-btn" onclick="resetToLanding()" style="margin-top: 2rem;">
+                New Request
+            </button>
+        </div>
+    </div>
+
+    <script>
+        let resumeUrl = null;
+        let selectedFiles = [];
+
+        function addStatusUpdate(message) {
+            const statusContent = document.getElementById('statusContent');
+            const timestamp = new Date().toLocaleTimeString();
+            const statusItem = document.createElement('div');
+            statusItem.className = 'status-item';
+            statusItem.innerHTML = `
+                <div>${message}</div>
+                <div class="status-timestamp">${timestamp}</div>
+            `;
+            statusContent.appendChild(statusItem);
+            statusContent.scrollTop = statusContent.scrollHeight;
+        }
+
+        function updateStatusPanel(stage) {
+            const statusContent = document.getElementById('statusContent');
+            const statuses = [
+                { text: 'Workflow Started', stage: 'started' },
+                { text: 'File Upload', stage: 'upload' },
+                { text: 'Product Selection', stage: 'products' },
+                { text: 'Submit Issue', stage: 'submit' },
+                { text: 'Complete', stage: 'complete' }
+            ];
+
+            statusContent.innerHTML = '';
+            
+            const stageOrder = ['started', 'upload', 'products', 'submit', 'complete'];
+            const currentIndex = stageOrder.indexOf(stage);
+            
+            statuses.forEach((status, index) => {
+                let color, textColor;
+                
+                if (index < currentIndex) {
+                    // Completed tasks - green
+                    color = '#28a745';
+                    textColor = '#212529';
+                } else if (index === currentIndex) {
+                    // Current task - yellow
+                    color = '#ffc107';
+                    textColor = '#212529';
+                } else {
+                    // Future tasks - grey
+                    color = '#6c757d';
+                    textColor = '#6c757d';
+                }
+                
+                const statusItem = document.createElement('div');
+                statusItem.className = 'status-item';
+                statusItem.innerHTML = `
+                    <div style="display: flex; align-items: center; gap: 8px;">
+                        <div style="width: 8px; height: 8px; border-radius: 50%; background-color: ${color};"></div>
+                        <div style="color: ${textColor};">
+                            ${status.text}
+                        </div>
+                    </div>
+                `;
+                statusContent.appendChild(statusItem);
+            });
+        }
+
+        function showSection(sectionId) {
+            const sections = ['landingSection', 'uploadSection', 'progressSection', 'productSelectionSection', 'resultsSection'];
+            sections.forEach(id => {
+                const element = document.getElementById(id);
+                if (element) {
+                    element.style.display = id === sectionId ? 'block' : 'none';
+                }
+            });
+        }
+
+        async function startNewRequest() {
+            updateStatusPanel('started');
+            
+            try {
+                const response = await fetch('/api/start-workflow', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ action: 'start_claim' })
+                });
+
+                const data = await response.json();
+                
+                if (data.resumeUrl) {
+                    resumeUrl = data.resumeUrl;
+                    updateStatusPanel('upload');
+                    showSection('uploadSection');
+                } else {
+                    addStatusUpdate('Error: Could not start workflow');
+                }
+            } catch (error) {
+                console.error('Error starting workflow:', error);
+                addStatusUpdate('Error: Failed to connect to server');
+            }
+        }
+
+        async function submitClaim() {
+            if (!resumeUrl) {
+                addStatusUpdate('Error: No active workflow');
+                return;
+            }
+
+            if (selectedFiles.length === 0) {
+                addStatusUpdate('Error: No files selected');
+                return;
+            }
+
+            updateStatusPanel('submit');
+            showSection('progressSection');
+
+            const formData = new FormData();
+            selectedFiles.forEach((file, index) => {
+                formData.append(`file${index}`, file);
+            });
+
+            try {
+                const response = await fetch(`/api/resume-workflow?resumeUrl=${encodeURIComponent(resumeUrl)}`, {
+                    method: 'POST',
+                    body: formData
+                });
+
+                const result = await response.json();
+                console.log('Received result:', result);
+                
+                // Check if this is the product analysis response
+                let productData = null;
+                
+                // Handle different response formats from n8n
+                if (Array.isArray(result) && result[0] && result[0].summary && result[0].products) {
+                    // Direct array format
+                    productData = result[0];
+                } else if (result.summary && result.products) {
+                    // Direct object format
+                    productData = result;
+                } else if (result[0] && result[0].summary && result[0].products) {
+                    // Object with indexed key format (current case)
+                    productData = result[0];
+                } else if (result.success && result[0]) {
+                    // Wrapped response format (current case)
+                    productData = result[0];
+                }
+                
+                if (productData && productData.summary && productData.products) {
+                    displayProductSelection(productData);
+                } else {
+                    updateStatusPanel('complete');
+                    displayResults(result);
+                }
+            } catch (error) {
+                console.error('Error submitting claim:', error);
+                addStatusUpdate('Error: Failed to submit claim');
+            }
+        }
+
+        function displayResults(data) {
+            const resultsContent = document.getElementById('resultsContent');
+            resultsContent.innerHTML = `
+                <div style="background: #f8f9fa; padding: 1.5rem; border-radius: 8px; margin-bottom: 1rem;">
+                    <h3 style="margin-bottom: 1rem; color: #212529;">Processing Summary</h3>
+                    <pre style="white-space: pre-wrap; font-family: inherit;">${JSON.stringify(data, null, 2)}</pre>
+                </div>
+            `;
+            showSection('resultsSection');
+        }
+
+        let selectedProduct = null;
+        let selectedSupportType = null;
+        updateSubmitButtonState();
+
+        function displayProductSelection(data) {
+            updateStatusPanel('products');
+
+            // Reset selections
+            selectedProduct = null;
+            selectedSupportType = null;
+            updateSubmitButtonState();
+
+            // Display summary
+            const summaryContent = document.getElementById('summaryContent');
+            summaryContent.innerHTML = `
+                <h3 style="margin-bottom: 1rem; color: #212529;">Analysis Summary</h3>
+                <p>${data.summary}</p>
+            `;
+
+            // Product buttons (single-select)
+            const productButtons = document.getElementById('productButtons');
+            const products = data.products.split(',').map(p => p.trim());
+            productButtons.innerHTML = '<h3 style="margin-bottom: 1rem; color: #212529;">Select a Product:</h3>';
+            products.forEach(product => {
+                const button = document.createElement('button');
+                button.className = 'product-btn';
+                button.textContent = product;
+                button.onclick = () => selectProduct(product, button);
+                productButtons.appendChild(button);
+            });
+
+            
+            // Support type buttons (single-select)
+            const supportTypeButtons = document.getElementById('supportTypeButtons');
+            supportTypeButtons.innerHTML = '<h3 style="margin-bottom: 1rem; color: #212529;">Select a Support Type:</h3>';
+            data.supportTypes.forEach(support => {
+                const button = document.createElement('button');
+                button.className = 'support-type-btn';
+                button.innerHTML = `<div><strong>${support.type}</strong></div><div style="font-size:0.85em;color:#6c757d;">${support.subtitle}</div>`;
+                button.onclick = () => selectSupportType(support, button);
+                supportTypeButtons.appendChild(button);
+            });
+
+            // Store resumeUrl for next step
+            if (data.resumeUrl) {
+                resumeUrl = data.resumeUrl;
+            }
+
+            showSection('productSelectionSection');
+            updateSubmitButtonState();
+        }
+
+        function selectProduct(product, buttonElement) {
+            selectedProduct = product;
+            // Remove 'selected' from all product buttons
+            document.querySelectorAll('.product-btn').forEach(btn => btn.classList.remove('selected'));
+            buttonElement.classList.add('selected');
+            updateSubmitButtonState();
+        }
+        
+        function selectSupportType(support, buttonElement) {
+            selectedSupportType = support;
+            // Remove 'selected' from all support type buttons
+            document.querySelectorAll('.support-type-btn').forEach(btn => btn.classList.remove('selected'));
+            buttonElement.classList.add('selected');
+            updateSubmitButtonState();
+        }
+
+        function updateSubmitButtonState() {
+            const submitBtn = document.getElementById('productSubmitBtn');
+            submitBtn.disabled = !(selectedProduct && selectedSupportType);
+        }
+
+        async function submitProductSelection() {
+            if (!resumeUrl || !selectedProduct || !selectedSupportType) {
+                addStatusUpdate('Error: Please select both a product and a support type');
+                return;
+            }
+
+            updateStatusPanel('submit');
+            showSection('progressSection');
+
+            try {
+                const response = await fetch(`/api/resume-workflow?resumeUrl=${encodeURIComponent(resumeUrl)}`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        selectedProduct,
+                        selectedSupportType,
+                        action: 'submit_product_selection'
+                    })
+                });
+
+                const result = await response.json();
+                updateStatusPanel('complete');
+                displayResults(result);
+            } catch (error) {
+                console.error('Error submitting product selection:', error);
+                addStatusUpdate('Error: Failed to submit selection');
+            }
+        }
+
+        function resetToLanding() {
+            resumeUrl = null;
+            selectedFiles = [];
+            selectedProduct = [];
+            selectedSupportType = null;
+            updateSubmitButtonState();
+            
+            // Safely reset file input
+            const fileInput = document.getElementById('fileInput');
+            if (fileInput) {
+                fileInput.value = '';
+            }
+            
+            const progressFill = document.getElementById('progressFill');
+            if (progressFill) {
+                progressFill.style.width = '0%';
+            }
+            
+            const submitBtn = document.getElementById('submitBtn');
+            if (submitBtn) {
+                submitBtn.disabled = true;
+            }
+            
+            const productSubmitBtn = document.getElementById('productSubmitBtn');
+            if (productSubmitBtn) {
+                productSubmitBtn.disabled = true;
+            }
+            
+            // Reset upload area display
+            const uploadArea = document.getElementById('uploadArea');
+            if (uploadArea) {
+                uploadArea.innerHTML = `
+                    <div style="text-align: center;">
+                        <div style="font-size: 1.1rem; margin-bottom: 2rem; color: #6c757d;">
+                            Drag and drop your invoice here
+                        </div>
+                        <input type="file" id="fileInput" class="file-input" multiple accept=".pdf,.jpg,.jpeg,.png,.doc,.docx">
+                        <button class="choose-file-btn" onclick="document.getElementById('fileInput').click()">
+                            Choose File
+                        </button>
+                    </div>
+                `;
+                
+                // Re-attach event listeners for the new file input
+                const newFileInput = document.getElementById('fileInput');
+                if (newFileInput) {
+                    newFileInput.addEventListener('change', (e) => {
+                        handleFiles(e.target.files);
+                    });
+                }
+            }
+            
+            showSection('landingSection');
+            
+            // Reset status panel to initial state
+            const statusContent = document.getElementById('statusContent');
+            if (statusContent) {
+                statusContent.innerHTML = `
+                    <div class="status-item">
+                        <div>Ready to process claims</div>
+                        <div class="status-timestamp">System online</div>
+                    </div>
+                `;
+            }
+        }
+
+        // File upload handling
+        const uploadArea = document.getElementById('uploadArea');
+        const fileInput = document.getElementById('fileInput');
+
+        uploadArea.addEventListener('click', () => fileInput.click());
+        
+        uploadArea.addEventListener('dragover', (e) => {
+            e.preventDefault();
+            uploadArea.classList.add('dragover');
+        });
+
+        uploadArea.addEventListener('dragleave', () => {
+            uploadArea.classList.remove('dragover');
+        });
+
+        uploadArea.addEventListener('drop', (e) => {
+            e.preventDefault();
+            uploadArea.classList.remove('dragover');
+            handleFiles(e.dataTransfer.files);
+        });
+
+        fileInput.addEventListener('change', (e) => {
+            handleFiles(e.target.files);
+        });
+
+        function handleFiles(files) {
+            selectedFiles = Array.from(files);
+            updateUploadDisplay();
+            
+            // Enable submit button when files are selected
+            const submitBtn = document.getElementById('submitBtn');
+            submitBtn.disabled = selectedFiles.length === 0;
+        }
+
+        function updateUploadDisplay() {
+            const uploadArea = document.getElementById('uploadArea');
+            if (selectedFiles.length > 0) {
+                const fileName = selectedFiles[0].name; // Show first file name
+                uploadArea.innerHTML = `
+                    <div style="text-align: center;">
+                        <div style="font-size: 1.1rem; margin-bottom: 1rem; color: #28a745;">
+                            ✓ File selected
+                        </div>
+                        <div style="font-size: 0.9rem; color: #6c757d; margin-bottom: 2rem;">
+                            ${fileName}
+                        </div>
+                        <button class="choose-file-btn" onclick="document.getElementById('fileInput').click()">
+                            Choose Different File
+                        </button>
+                    </div>
+                `;
+            }
+        }
+
+        // Progress simulation
+        function simulateProgress() {
+            const progressFill = document.getElementById('progressFill');
+            const progressText = document.getElementById('progressText');
+            const steps = [
+                'Analyzing documents...',
+                'Extracting information...',
+                'Processing claim data...',
+                'Generating results...'
+            ];
+            
+            let progress = 0;
+            let stepIndex = 0;
+            
+            const interval = setInterval(() => {
+                progress += Math.random() * 25;
+                if (progress > 100) progress = 100;
+                
+                progressFill.style.width = progress + '%';
+                
+                if (stepIndex < steps.length) {
+                    progressText.textContent = steps[stepIndex];
+                    stepIndex++;
+                }
+                
+                if (progress >= 100) {
+                    clearInterval(interval);
+                    progressText.textContent = 'Processing complete';
+                }
+            }, 800);
+        }
+    </script>
+</body>
+</html>
