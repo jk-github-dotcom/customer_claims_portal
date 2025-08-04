@@ -240,6 +240,56 @@
         .support-type-btn.selected:hover {
             background-color: #333333;
             border-color: #333333;
+        }
+        
+        .issue-btn {
+            background-color: #f8f9fa;
+            border: 2px solid #dee2e6;
+            color: #212529;
+            padding: 1rem 1.5rem;
+            margin: 0.5rem;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 0.9rem;
+            font-weight: 500;
+            transition: all 0.2s ease;
+            display: block;
+            width: 100%;
+            max-width: 500px;
+            text-align: left;
+        }
+
+        .issue-btn:hover {
+            border-color: #adb5bd;
+            background-color: #e9ecef;
+        }
+
+        .issue-btn.selected {
+            background-color: #007bff;
+            color: #ffffff;
+            border-color: #007bff;
+        }
+
+        .issue-btn.selected:hover {
+            background-color: #0056b3;
+            border-color: #0056b3;
+        }
+
+        .text-input-area {
+            width: 100%;
+            max-width: 500px;
+            min-height: 120px;
+            padding: 1rem;
+            border: 2px solid #dee2e6;
+            border-radius: 8px;
+            font-family: inherit;
+            font-size: 0.9rem;
+            resize: vertical;
+        }
+
+        .text-input-area:focus {
+            outline: none;
+            border-color: #007bff;
         }        
 
         @media (max-width: 768px) {
@@ -325,6 +375,23 @@
             </button>
         </div>
 
+        <!-- Issue Description Section (Hidden initially) -->
+        <div class="issue-description-section" id="issueDescriptionSection">
+            <h1 class="portal-title">Describe Your Issues</h1>
+            <div id="issueSummaryContent" style="background: #f8f9fa; padding: 1.5rem; border-radius: 8px; margin-bottom: 2rem; text-align: left; max-width: 600px;">
+                <!-- Issue summary will be populated here -->
+            </div>
+            <div id="issueButtons" style="margin-bottom: 2rem;">
+                <!-- Issue buttons will be populated here -->
+            </div>
+            <div id="textInputContainer" style="margin-bottom: 2rem; display: none;">
+                <!-- Text input will be populated here -->
+            </div>
+            <button class="submit-btn" onclick="submitIssueDescription()" id="issueSubmitBtn" disabled>
+                Continue
+            </button>
+        </div>        
+
         <!-- Results Section (Hidden initially) -->
         <div class="results-section" id="resultsSection">
             <h2 style="margin-bottom: 2rem; color: #212529;">Claim Results</h2>
@@ -354,20 +421,68 @@
             statusContent.scrollTop = statusContent.scrollHeight;
         }
 
-        function updateStatusPanel(stage) {
+        //function updateStatusPanel(stage) {
+        //    const statusContent = document.getElementById('statusContent');
+        //    const statuses = [
+        //        { text: 'Workflow Started', stage: 'started' },
+        //        { text: 'File Upload', stage: 'upload' },
+        //        { text: 'Product Selection', stage: 'products' },
+        //        { text: 'Describe Issues', stage: 'issues' },
+        //        { text: 'Submit Issue', stage: 'submit' },
+        //        { text: 'Complete', stage: 'complete' }
+        //    ];
+
+        //    statusContent.innerHTML = '';
+            
+        //    const stageOrder = ['started', 'upload', 'products', 'issues','submit', 'complete'];
+        //    const currentIndex = stageOrder.indexOf(stage);
+            
+        //    statuses.forEach((status, index) => {
+        //        let color, textColor;
+                
+        //        if (index < currentIndex) {
+        //            // Completed tasks - green
+        //            color = '#28a745';
+        //            textColor = '#212529';
+        //        } else if (index === currentIndex) {
+        //            // Current task - yellow
+        //            color = '#ffc107';
+        //            textColor = '#212529';
+        //        } else {
+        //            // Future tasks - grey
+        //            color = '#6c757d';
+        //            textColor = '#6c757d';
+        //        }
+                
+        //        const statusItem = document.createElement('div');
+        //        statusItem.className = 'status-item';
+        //        statusItem.innerHTML = `
+        //            <div style="display: flex; align-items: center; gap: 8px;">
+        //                <div style="width: 8px; height: 8px; border-radius: 50%; background-color: ${color};"></div>
+        //                <div style="color: ${textColor};">
+        //                    ${status.text}
+        //                </div>
+        //            </div>
+        //        `;
+        //        statusContent.appendChild(statusItem);
+        //    });
+        //}
+
+        function showFullStatusPanel(currentStage) {
             const statusContent = document.getElementById('statusContent');
             const statuses = [
-                { text: 'Workflow Started', stage: 'started' },
+                { text: 'Start Process', stage: 'started' },
                 { text: 'File Upload', stage: 'upload' },
                 { text: 'Product Selection', stage: 'products' },
+                { text: 'Describe Issues', stage: 'issues' },
                 { text: 'Submit Issue', stage: 'submit' },
                 { text: 'Complete', stage: 'complete' }
             ];
 
             statusContent.innerHTML = '';
             
-            const stageOrder = ['started', 'upload', 'products', 'submit', 'complete'];
-            const currentIndex = stageOrder.indexOf(stage);
+            const stageOrder = ['started', 'upload', 'products', 'issues', 'submit', 'complete'];
+            const currentIndex = stageOrder.indexOf(currentStage);
             
             statuses.forEach((status, index) => {
                 let color, textColor;
@@ -398,10 +513,11 @@
                 `;
                 statusContent.appendChild(statusItem);
             });
-        }
+        }        
 
         function showSection(sectionId) {
-            const sections = ['landingSection', 'uploadSection', 'progressSection', 'productSelectionSection', 'resultsSection'];
+            console.log('Showing section:', sectionId);
+            const sections = ['landingSection', 'uploadSection', 'progressSection', 'productSelectionSection', 'issueDescriptionSection', 'resultsSection'];
             sections.forEach(id => {
                 const element = document.getElementById(id);
                 if (element) {
@@ -410,8 +526,12 @@
             });
         }
 
+        // Initialize page state (Alternative Solution (if DOMContentLoaded doesn't work))
+        // showSection('landingSection');
+
         async function startNewRequest() {
-            updateStatusPanel('started');
+            //updateStatusPanel('started');
+            showFullStatusPanel('started');
             
             try {
                 const response = await fetch('/api/start-workflow', {
@@ -426,7 +546,8 @@
                 
                 if (data.resumeUrl) {
                     resumeUrl = data.resumeUrl;
-                    updateStatusPanel('upload');
+                    //updateStatusPanel('upload');
+                    showFullStatusPanel('upload');
                     showSection('uploadSection');
                 } else {
                     addStatusUpdate('Error: Could not start workflow');
@@ -448,7 +569,8 @@
                 return;
             }
 
-            updateStatusPanel('submit');
+            //updateStatusPanel('submit');
+            showFullStatusPanel('upload');
             showSection('progressSection');
 
             const formData = new FormData();
@@ -486,7 +608,8 @@
                 if (productData && productData.summary && productData.products) {
                     displayProductSelection(productData);
                 } else {
-                    updateStatusPanel('complete');
+                    //updateStatusPanel('complete');
+                    showFullStatusPanel('complete');
                     displayResults(result);
                 }
             } catch (error) {
@@ -511,7 +634,8 @@
         updateSubmitButtonState();
 
         function displayProductSelection(data) {
-            updateStatusPanel('products');
+            //updateStatusPanel('products');
+            showFullStatusPanel('products');
 
             // Reset selections
             selectedProduct = null;
@@ -585,7 +709,8 @@
                 return;
             }
 
-            updateStatusPanel('submit');
+            //updateStatusPanel('submit');
+            showFullStatusPanel('products');
             showSection('progressSection');
 
             try {
@@ -602,20 +727,189 @@
                 });
 
                 const result = await response.json();
-                updateStatusPanel('complete');
-                displayResults(result);
+                
+                // Check if this response contains issue details (next step)
+                if (result && result[0] && result[0].issueDetails) {
+                    displayIssueDescription(result[0]);
+                } else {
+                    // No more steps, show final results
+                    //updateStatusPanel('complete');
+                    showFullStatusPanel('complete');
+                    displayResults(result);
+                }
             } catch (error) {
                 console.error('Error submitting product selection:', error);
                 addStatusUpdate('Error: Failed to submit selection');
             }
         }
 
+        let selectedIssues = [];
+        let issueTextInput = '';
+
+        function displayIssueDescription(data) {
+            //updateStatusPanel('issues');
+            showFullStatusPanel('issues');
+            
+            // Reset selections
+            selectedIssues = [];
+            issueTextInput = '';
+            updateIssueSubmitButtonState();
+            
+            // Display summary
+            const issueSummaryContent = document.getElementById('issueSummaryContent');
+            issueSummaryContent.innerHTML = `
+                <h3 style="margin-bottom: 1rem; color: #212529;">Selected Product & Support Type</h3>
+                <p><strong>Product:</strong> ${data.selectedProduct}</p>
+                <p><strong>Support Type:</strong> ${data.selectedSupportType}</p>
+            `;
+            
+            // Check if we have text input or multiple choice
+            const hasTextInput = data.issueDetails.length === 1 && data.issueDetails[0].issue === 'provideTextInput';
+            
+            if (hasTextInput) {
+                // Show text input
+                const issueButtons = document.getElementById('issueButtons');
+                issueButtons.style.display = 'none';
+                
+                const textInputContainer = document.getElementById('textInputContainer');
+                textInputContainer.style.display = 'block';
+                textInputContainer.innerHTML = `
+                    <h3 style="margin-bottom: 1rem; color: #212529;">${data.issueDetails[0].subtitle}</h3>
+                    <textarea 
+                        id="issueTextArea" 
+                        class="text-input-area" 
+                        placeholder="Please describe your question or issue..."
+                        oninput="handleTextInput()"
+                    ></textarea>
+                `;
+            } else {
+                // Show multiple choice buttons
+                const textInputContainer = document.getElementById('textInputContainer');
+                textInputContainer.style.display = 'none';
+                
+                const issueButtons = document.getElementById('issueButtons');
+                issueButtons.style.display = 'block';
+                issueButtons.innerHTML = '<h3 style="margin-bottom: 1rem; color: #212529;">Select all issues that apply:</h3>';
+                
+                data.issueDetails.forEach(issue => {
+                    const button = document.createElement('button');
+                    button.className = 'issue-btn';
+                    button.innerHTML = `
+                        <div><strong>${issue.issue}</strong></div>
+                        <div style="font-size:0.85em;color:#6c757d;margin-top:0.25rem;">${issue.subtitle}</div>
+                    `;
+                    button.onclick = () => toggleIssue(issue.issue, button);
+                    issueButtons.appendChild(button);
+                });
+            }
+            
+            // Store resumeUrl for next step
+            if (data.resumeUrl) {
+                resumeUrl = data.resumeUrl;
+            }
+            
+            showSection('issueDescriptionSection');
+            updateIssueSubmitButtonState();
+        }
+
+        function toggleIssue(issue, buttonElement) {
+            const index = selectedIssues.indexOf(issue);
+            
+            if (index > -1) {
+                // Remove issue
+                selectedIssues.splice(index, 1);
+                buttonElement.classList.remove('selected');
+            } else {
+                // Add issue
+                selectedIssues.push(issue);
+                buttonElement.classList.add('selected');
+            }
+            
+            updateIssueSubmitButtonState();
+        }
+
+        function handleTextInput() {
+            const textArea = document.getElementById('issueTextArea');
+            issueTextInput = textArea.value.trim();
+            updateIssueSubmitButtonState();
+        }
+
+        function updateIssueSubmitButtonState() {
+            const submitBtn = document.getElementById('issueSubmitBtn');
+            const hasTextInput = document.getElementById('textInputContainer').style.display !== 'none';
+            
+            if (hasTextInput) {
+                // Text input mode: require non-empty text
+                submitBtn.disabled = !issueTextInput;
+            } else {
+                // Multiple choice mode: require at least one selection
+                submitBtn.disabled = selectedIssues.length === 0;
+            }
+        }
+
+        async function submitIssueDescription() {
+            if (!resumeUrl) {
+                addStatusUpdate('Error: No active workflow');
+                return;
+            }
+            
+            const hasTextInput = document.getElementById('textInputContainer').style.display !== 'none';
+            
+            if (hasTextInput && !issueTextInput) {
+                addStatusUpdate('Error: Please describe your issue');
+                return;
+            }
+            
+            if (!hasTextInput && selectedIssues.length === 0) {
+                addStatusUpdate('Error: Please select at least one issue');
+                return;
+            }
+            
+            //updateStatusPanel('submit');
+            showFullStatusPanel('issues');
+            showSection('progressSection');
+            
+            try {
+                const payload = {
+                    selectedProduct: selectedProduct,
+                    selectedSupportType: selectedSupportType,
+                    sessionId: resumeUrl ? resumeUrl.split('/').pop() : null, // Extract session ID if available
+                    action: 'submit_issue_description'
+                };
+
+                if (hasTextInput) {
+                    payload.issueDescription = issueTextInput;
+                } else {
+                    payload.selectedIssues = selectedIssues;
+                }         
+                    
+                const response = await fetch(`/api/resume-workflow?resumeUrl=${encodeURIComponent(resumeUrl)}`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(payload)
+                });
+                
+                const result = await response.json();
+                //updateStatusPanel('complete');
+                showFullStatusPanel('complete');
+                displayResults(result);
+            } catch (error) {
+                console.error('Error submitting issue description:', error);
+                addStatusUpdate('Error: Failed to submit issue description');
+            }
+        }        
+
         function resetToLanding() {
             resumeUrl = null;
             selectedFiles = [];
-            selectedProduct = [];
+            selectedProduct = null;
             selectedSupportType = null;
+            selectedIssues = [];
+            issueTextInput = '';
             updateSubmitButtonState();
+            updateIssueSubmitButtonState();
             
             // Safely reset file input
             const fileInput = document.getElementById('fileInput');
@@ -636,6 +930,12 @@
             const productSubmitBtn = document.getElementById('productSubmitBtn');
             if (productSubmitBtn) {
                 productSubmitBtn.disabled = true;
+            }
+
+            // Disable the issue submit button
+            const issueSubmitBtn = document.getElementById('issueSubmitBtn');
+            if (issueSubmitBtn) {
+                issueSubmitBtn.disabled = true;
             }
             
             // Reset upload area display
@@ -663,17 +963,20 @@
             }
             
             showSection('landingSection');
+
+            // Reset status panel to show full panel with "Start Process" as current
+            showFullStatusPanel('started');
             
             // Reset status panel to initial state
-            const statusContent = document.getElementById('statusContent');
-            if (statusContent) {
-                statusContent.innerHTML = `
-                    <div class="status-item">
-                        <div>Ready to process claims</div>
-                        <div class="status-timestamp">System online</div>
-                    </div>
-                `;
-            }
+            //const statusContent = document.getElementById('statusContent');
+            //if (statusContent) {
+            //    statusContent.innerHTML = `
+            //        <div class="status-item">
+            //            <div>Ready to process claims</div>
+            //            <div class="status-timestamp">System online</div>
+            //        </div>
+            //    `;
+            //}
         }
 
         // File upload handling
@@ -761,6 +1064,13 @@
                 }
             }, 800);
         }
+
+        // Initialize the page to show landing section
+        document.addEventListener('DOMContentLoaded', function() {
+            showSection('landingSection');
+            showFullStatusPanel('started'); // Show full panel with "Start Process" as current
+        });
+
     </script>
 </body>
 </html>
