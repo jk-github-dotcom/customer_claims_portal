@@ -421,53 +421,6 @@
             statusContent.scrollTop = statusContent.scrollHeight;
         }
 
-        //function updateStatusPanel(stage) {
-        //    const statusContent = document.getElementById('statusContent');
-        //    const statuses = [
-        //        { text: 'Workflow Started', stage: 'started' },
-        //        { text: 'File Upload', stage: 'upload' },
-        //        { text: 'Product Selection', stage: 'products' },
-        //        { text: 'Describe Issues', stage: 'issues' },
-        //        { text: 'Submit Issue', stage: 'submit' },
-        //        { text: 'Complete', stage: 'complete' }
-        //    ];
-
-        //    statusContent.innerHTML = '';
-            
-        //    const stageOrder = ['started', 'upload', 'products', 'issues','submit', 'complete'];
-        //    const currentIndex = stageOrder.indexOf(stage);
-            
-        //    statuses.forEach((status, index) => {
-        //        let color, textColor;
-                
-        //        if (index < currentIndex) {
-        //            // Completed tasks - green
-        //            color = '#28a745';
-        //            textColor = '#212529';
-        //        } else if (index === currentIndex) {
-        //            // Current task - yellow
-        //            color = '#ffc107';
-        //            textColor = '#212529';
-        //        } else {
-        //            // Future tasks - grey
-        //            color = '#6c757d';
-        //            textColor = '#6c757d';
-        //        }
-                
-        //        const statusItem = document.createElement('div');
-        //        statusItem.className = 'status-item';
-        //        statusItem.innerHTML = `
-        //            <div style="display: flex; align-items: center; gap: 8px;">
-        //                <div style="width: 8px; height: 8px; border-radius: 50%; background-color: ${color};"></div>
-        //                <div style="color: ${textColor};">
-        //                    ${status.text}
-        //                </div>
-        //            </div>
-        //        `;
-        //        statusContent.appendChild(statusItem);
-        //    });
-        //}
-
         function showFullStatusPanel(currentStage) {
             const statusContent = document.getElementById('statusContent');
             const statuses = [
@@ -530,7 +483,6 @@
         // showSection('landingSection');
 
         async function startNewRequest() {
-            //updateStatusPanel('started');
             showFullStatusPanel('started');
             
             try {
@@ -546,7 +498,6 @@
                 
                 if (data.resumeUrl) {
                     resumeUrl = data.resumeUrl;
-                    //updateStatusPanel('upload');
                     showFullStatusPanel('upload');
                     showSection('uploadSection');
                 } else {
@@ -569,7 +520,6 @@
                 return;
             }
 
-            //updateStatusPanel('submit');
             showFullStatusPanel('upload');
             showSection('progressSection');
 
@@ -608,7 +558,6 @@
                 if (productData && productData.summary && productData.products) {
                     displayProductSelection(productData);
                 } else {
-                    //updateStatusPanel('complete');
                     showFullStatusPanel('complete');
                     displayResults(result);
                 }
@@ -634,7 +583,6 @@
         updateSubmitButtonState();
 
         function displayProductSelection(data) {
-            //updateStatusPanel('products');
             showFullStatusPanel('products');
 
             // Reset selections
@@ -709,7 +657,6 @@
                 return;
             }
 
-            //updateStatusPanel('submit');
             showFullStatusPanel('products');
             showSection('progressSection');
 
@@ -733,7 +680,6 @@
                     displayIssueDescription(result[0]);
                 } else {
                     // No more steps, show final results
-                    //updateStatusPanel('complete');
                     showFullStatusPanel('complete');
                     displayResults(result);
                 }
@@ -747,7 +693,6 @@
         let issueTextInput = '';
 
         function displayIssueDescription(data) {
-            //updateStatusPanel('issues');
             showFullStatusPanel('issues');
             
             // Reset selections
@@ -865,7 +810,6 @@
                 return;
             }
             
-            //updateStatusPanel('submit');
             showFullStatusPanel('issues');
             showSection('progressSection');
             
@@ -892,7 +836,6 @@
                 });
                 
                 const result = await response.json();
-                //updateStatusPanel('complete');
                 showFullStatusPanel('complete');
                 displayResults(result);
             } catch (error) {
