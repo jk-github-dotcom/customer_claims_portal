@@ -1,0 +1,20 @@
+// Expecting input like:
+// [
+//   {
+//     "output": "Thank you for reaching out regarding the battery charging ..."
+//   }
+// ]
+
+return items.map(item => {
+  const resolution = item.json.output || '';
+
+  return {
+    json: {
+      resolution,
+      selectedProduct: $('Wait for Issue Description').first().json.body.selectedProduct,
+      selectedSupportType: $('Wait for Issue Description').first().json.body.selectedSupportType,
+      issueDescription: $('Wait for Issue Description').first().json.body.issueDescription, 
+      resumeUrl: $execution.resumeUrl
+    }
+  };
+});

@@ -1,0 +1,41 @@
+// Get input JSON from webhook
+const input = $input.first().json;
+
+// Extract values
+const selectedProduct = input.body?.selectedProduct || '';
+const selectedSupportType = input.body?.selectedSupportType?.type || '';
+const resumeUrl = $execution.resumeUrl;
+
+// Define issue details mapping for each support type
+const issueDetailsMap = {
+  "Troubleshooting": [
+    { issue: "Battery not charging properly", subtitle: "Check if this describes your problem" },
+    { issue: "Screen flickering or display issues", subtitle: "Check if this describes your problem" },
+    { issue: "Keyboard keys unresponsive", subtitle: "Check if this describes your problem" },
+    { issue: "Unexpected shutdowns or restarts", subtitle: "Check if this describes your problem" },
+    { issue: "Wi-Fi or connectivity problems", subtitle: "Check if this describes your problem" }
+  ],
+  "General Question": [
+    { issue: "provideTextInput", subtitle: "Please describe your question" }
+  ],
+  "Warranty Claim": [
+    { issue: "provideTextInput", subtitle: "Please describe the defect or warranty issue" }
+  ]
+};
+
+// Fallback to default if type not found
+const issueDetails = issueDetailsMap[selectedSupportType] || [
+  { issue: "provideTextInput", subtitle: "Please describe your request or issue" }
+];
+
+// Return output JSON
+return [
+  {
+    json: {
+      selectedProduct,
+      selectedSupportType,
+      issueDetails,
+      resumeUrl
+    }
+  }
+];

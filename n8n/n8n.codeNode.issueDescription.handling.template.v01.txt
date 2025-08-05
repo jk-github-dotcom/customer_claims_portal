@@ -1,0 +1,9 @@
+		
+// Always process as an array in N8N
+const issueDescriptions = $input.all()[0].json.issueDescription;
+
+// Loop through all descriptions (works for both single and multiple)
+    issueDescriptions.forEach((description, index) => {
+    //Process each description
+    console.log(`Issue ${index + 1}: ${description}`);
+});
