@@ -1,0 +1,478 @@
+{
+  "name": "N8N 2025-07-29 Customer Claims Portal v02",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "5a971dd0-5b74-43c7-a87a-a0bbe8a4e81f",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [
+        -1720,
+        -1060
+      ],
+      "id": "30385a3f-6380-4e79-85bd-12bbdbcc8b76",
+      "name": "Webhook",
+      "webhookId": "5a971dd0-5b74-43c7-a87a-a0bbe8a4e81f"
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={\n  \"resumeUrl\": \"{{$execution.resumeUrl}}\"\n}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.4,
+      "position": [
+        -1560,
+        -1060
+      ],
+      "id": "b8dd725a-a50d-495e-8168-5844073145bf",
+      "name": "Respond to Webhook"
+    },
+    {
+      "parameters": {
+        "respondWith": "allIncomingItems",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.4,
+      "position": [
+        -780,
+        -840
+      ],
+      "id": "6413dda0-0875-4fd1-871b-bd007381b519",
+      "name": "Respond to Webhook1"
+    },
+    {
+      "parameters": {
+        "resource": "image",
+        "operation": "analyze",
+        "modelId": {
+          "__rl": true,
+          "value": "gpt-4o",
+          "mode": "list",
+          "cachedResultName": "GPT-4O"
+        },
+        "text": "List the products in this invoice",
+        "inputType": "base64",
+        "binaryPropertyName": "file0",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.openAi",
+      "typeVersion": 1.8,
+      "position": [
+        -1400,
+        -840
+      ],
+      "id": "20c5ef03-c4ab-4726-8772-3df6ddf89e15",
+      "name": "Analyze image",
+      "credentials": {
+        "openAiApi": {
+          "id": "6ECIRDRBjUI1QFvE",
+          "name": "OpenAi account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "={{ $json.content }}",
+        "options": {
+          "systemMessage": "#Instructions\n\n1. Generate a summary of the invoice content in 2 sentences\n2. List the products (do not include warranty line items)\n\n#Output JSON\n\n{\nsummary: 2 senternces\nproducts: product 1, product 2\n}\n\n"
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 2,
+      "position": [
+        -1260,
+        -840
+      ],
+      "id": "e19630e2-01ae-4f5e-91bc-f644ade14033",
+      "name": "AI Agent"
+    },
+    {
+      "parameters": {
+        "model": {
+          "__rl": true,
+          "mode": "list",
+          "value": "gpt-4.1-mini"
+        },
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
+      "typeVersion": 1.2,
+      "position": [
+        -1300,
+        -660
+      ],
+      "id": "9ddd48a7-1994-4188-abee-5f2004bed396",
+      "name": "OpenAI Chat Model",
+      "credentials": {
+        "openAiApi": {
+          "id": "6ECIRDRBjUI1QFvE",
+          "name": "OpenAi account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "respondWith": "allIncomingItems",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.4,
+      "position": [
+        -780,
+        -580
+      ],
+      "id": "842c2945-2b08-4b8c-8696-9e787b98feaf",
+      "name": "Respond to Webhook2"
+    },
+    {
+      "parameters": {
+        "content": "## UI Start New Request\nSection 01",
+        "height": 100
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        -1980,
+        -1060
+      ],
+      "typeVersion": 1,
+      "id": "983ad400-5e59-45aa-b067-8b37955176e6",
+      "name": "Sticky Note"
+    },
+    {
+      "parameters": {
+        "content": "## Trigger for UI Product Selection\nSection 03",
+        "height": 100
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        -660,
+        -840
+      ],
+      "typeVersion": 1,
+      "id": "6a10d1a1-e38f-4906-a97c-98015d6f61d6",
+      "name": "Sticky Note1"
+    },
+    {
+      "parameters": {
+        "content": "## Trigger for UI File Upload \nSection 02",
+        "height": 100
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        -1440,
+        -1060
+      ],
+      "typeVersion": 1,
+      "id": "5c723e39-865a-42bc-8e11-96b87e3a3ea0",
+      "name": "Sticky Note2"
+    },
+    {
+      "parameters": {
+        "content": "## Trigger for UI Success",
+        "height": 100,
+        "width": 220
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        -640,
+        -300
+      ],
+      "typeVersion": 1,
+      "id": "e68a9197-c6aa-4f10-bbe1-37771761deba",
+      "name": "Sticky Note3"
+    },
+    {
+      "parameters": {
+        "content": "## Trigger for UI Issue Selection",
+        "height": 100,
+        "width": 220
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        -660,
+        -580
+      ],
+      "typeVersion": 1,
+      "id": "b01b61f1-cff3-4660-b26b-7d6e7ca8821c",
+      "name": "Sticky Note4"
+    },
+    {
+      "parameters": {
+        "content": "## Code Node\nTip: Let LLM write the code for this node",
+        "height": 100,
+        "width": 220,
+        "color": 7
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        -1000,
+        -960
+      ],
+      "typeVersion": 1,
+      "id": "60bbb0f4-1119-4ad2-9d79-c4e10e35d098",
+      "name": "Sticky Note5"
+    },
+    {
+      "parameters": {
+        "content": "## UI Workflow\n\n\n\n## Step 01 -->\nScreen 01-->02\n\n\n\n\n\n\n\n\n\n\n\n\n\n## Step 02 -->\nScreen 02-->03\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n## Step 03 -->\nScreen 03-->04\n\n\n\n\n\n\n\n\n\n\n\n\n\n## Step 04\nSCreen 04-->05",
+        "height": 960,
+        "width": 200,
+        "color": 5
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        -2200,
+        -1140
+      ],
+      "typeVersion": 1,
+      "id": "9edaf4a8-4b7e-4c82-b108-fd2cdcd76966",
+      "name": "Sticky Note6"
+    },
+    {
+      "parameters": {
+        "jsCode": "// Input example in n8n:\n// {\n//   \"summary\": \"The invoice includes a purchase of a MacBook Pro 14-inch M3 with 512GB storage along with an accessory and a care plan. The care plan provides extended warranty coverage for the MacBook Pro.\",\n//   \"products\": \"MacBook Pro 14-inch M3.512GB, USB-C to USB Adapter\"\n// }\n\nconst input = $input.first().json.output;\nconst parsed = JSON.parse(input);\n\n// Extract summary and products\nconst summary = parsed.summary || '';\nconst productsRaw = parsed.products || '';\n\n// Format products (ensure clean separation by comma)\nconst productsList = productsRaw\n  .split(',')\n  .map(p => p.trim())\n  .join(', ');\n\n// Define support types\nconst supportTypes = [\n  { type: \"General Question\", subtitle: \"Basic inquiries about your product\" },\n  { type: \"Troubleshooting\", subtitle: \"Technical issues or problems\" },\n  { type: \"Warranty Claim\", subtitle: \"Product defects or warranty issues\" }\n];\n\n// Access the n8n execution resume URL\nconst resumeUrl = $execution.resumeUrl;\n\n// Return final JSON\nreturn [\n  {\n    json: {\n      summary: summary,\n      products: productsList,\n      supportTypes: supportTypes,\n      resumeUrl: resumeUrl\n    }\n  }\n];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -960,
+        -840
+      ],
+      "id": "5122a8d0-214c-44cc-b620-5f0f30ef13d3",
+      "name": "Code Product and Support Type Selection"
+    },
+    {
+      "parameters": {
+        "resume": "webhook",
+        "httpMethod": "POST",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.wait",
+      "typeVersion": 1.1,
+      "position": [
+        -1560,
+        -580
+      ],
+      "id": "84f2150a-bc3d-4b21-94b0-6103c670d076",
+      "name": "Wait for Product and Support Type",
+      "webhookId": "1de2288e-6043-45a4-bc55-79489d4d0bd8"
+    },
+    {
+      "parameters": {
+        "resume": "webhook",
+        "httpMethod": "POST",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.wait",
+      "typeVersion": 1.1,
+      "position": [
+        -1560,
+        -840
+      ],
+      "id": "081e6545-d76e-4bd0-a899-eb7d8f8ad625",
+      "name": "Wait for Invoice",
+      "webhookId": "c62d2c8d-515c-4961-ab66-d49b01da0c83"
+    },
+    {
+      "parameters": {
+        "jsCode": "// Get input JSON from webhook\nconst input = $input.first().json;\n\n// Extract values\nconst selectedProduct = input.body?.selectedProduct || '';\nconst selectedSupportType = input.body?.selectedSupportType?.type || '';\nconst resumeUrl = $execution.resumeUrl;\n\n// Define issue details mapping for each support type\nconst issueDetailsMap = {\n  \"Troubleshooting\": [\n    { issue: \"Battery not charging properly\", subtitle: \"Check if this describes your problem\" },\n    { issue: \"Screen flickering or display issues\", subtitle: \"Check if this describes your problem\" },\n    { issue: \"Keyboard keys unresponsive\", subtitle: \"Check if this describes your problem\" },\n    { issue: \"Unexpected shutdowns or restarts\", subtitle: \"Check if this describes your problem\" },\n    { issue: \"Wi-Fi or connectivity problems\", subtitle: \"Check if this describes your problem\" }\n  ],\n  \"General Question\": [\n    { issue: \"provideTextInput\", subtitle: \"Please describe your question\" }\n  ],\n  \"Warranty Claim\": [\n    { issue: \"provideTextInput\", subtitle: \"Please describe the defect or warranty issue\" }\n  ]\n};\n\n// Fallback to default if type not found\nconst issueDetails = issueDetailsMap[selectedSupportType] || [\n  { issue: \"provideTextInput\", subtitle: \"Please describe your request or issue\" }\n];\n\n// Return output JSON\nreturn [\n  {\n    json: {\n      selectedProduct,\n      selectedSupportType,\n      issueDetails,\n      resumeUrl\n    }\n  }\n];\n"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -960,
+        -580
+      ],
+      "id": "cc884916-b171-4811-a228-194597211703",
+      "name": "Code Issue Selection"
+    },
+    {
+      "parameters": {
+        "resume": "webhook",
+        "httpMethod": "POST",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.wait",
+      "typeVersion": 1.1,
+      "position": [
+        -1560,
+        -300
+      ],
+      "id": "646a8f7f-dae0-4d00-9be2-764df6b0eee4",
+      "name": "Wait",
+      "webhookId": "fbc13eb9-ed19-4f69-85e2-c3bf3897d519"
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "{\n  \"response\": \"success\"\n}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.4,
+      "position": [
+        -760,
+        -300
+      ],
+      "id": "7d250243-e85e-48f9-8fd6-ae60d82c938e",
+      "name": "Respond to Webhook3"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Webhook": {
+      "main": [
+        [
+          {
+            "node": "Respond to Webhook",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Respond to Webhook": {
+      "main": [
+        [
+          {
+            "node": "Wait for Invoice",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Analyze image": {
+      "main": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "AI Agent": {
+      "main": [
+        [
+          {
+            "node": "Code Product and Support Type Selection",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "OpenAI Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Respond to Webhook1": {
+      "main": [
+        [
+          {
+            "node": "Wait for Product and Support Type",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code Product and Support Type Selection": {
+      "main": [
+        [
+          {
+            "node": "Respond to Webhook1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Wait for Product and Support Type": {
+      "main": [
+        [
+          {
+            "node": "Code Issue Selection",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Wait for Invoice": {
+      "main": [
+        [
+          {
+            "node": "Analyze image",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code Issue Selection": {
+      "main": [
+        [
+          {
+            "node": "Respond to Webhook2",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Respond to Webhook2": {
+      "main": [
+        [
+          {
+            "node": "Wait",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Wait": {
+      "main": [
+        [
+          {
+            "node": "Respond to Webhook3",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "versionId": "fcdc4f45-30ff-4c6c-8a89-946add4cabf1",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "429d0d0c5f766d8efea4708b349cb495bdba0b7932ab34ea3ddb8769cf23ad73"
+  },
+  "id": "I4F2Ny5WAIfd85YW",
+  "tags": []
+}

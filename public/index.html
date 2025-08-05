@@ -4,6 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>    
     <title>AI Claims Portal</title>
     <style>
         * {
@@ -290,7 +291,83 @@
         .text-input-area:focus {
             outline: none;
             border-color: #007bff;
+        }
+
+        .resolution-section {
+            display: none;
+            height: 100vh;
+            overflow-y: auto;
+            padding: 2rem;
+        }
+
+        #resolutionContent {
+            background: #f8f9fa;
+            padding: 1.5rem;
+            border-radius: 8px;
+            margin-bottom: 2rem;
+            text-align: left;
+            width: 100%;
+            max-width: 800px;
+            max-height: 40vh; /* Reduced from 60vh to leave room for email section */
+            overflow-y: auto;
+            line-height: 1.6;
+            font-size: 0.95rem;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+
+        #emailSection {
+            margin-top: 2rem;
+            margin-bottom: 2rem;
+        }
+
+        /* Ensure the main panel can scroll */
+        .main-panel {
+            overflow-y: auto;
+            height: 100vh;
+        }
+
+        /* Markdown begin */
+
+        #resolutionContent h1, #resolutionContent h2, #resolutionContent h3 {
+            color: #212529;
+            margin-top: 1.5rem;
+            margin-bottom: 0.5rem;
+        }
+
+        #resolutionContent p {
+            margin-bottom: 1rem;
+        }
+
+        #resolutionContent ul, #resolutionContent ol {
+            margin-bottom: 1rem;
+            padding-left: 1.5rem;
+        }
+
+        #resolutionContent li {
+            margin-bottom: 0.25rem;
+        }
+
+        #resolutionContent strong {
+            color: #212529;
+        }
+
+        #resolutionContent a {
+            color: #007bff;
+            text-decoration: none;
+        }
+
+        #resolutionContent a:hover {
+            text-decoration: underline;
+        }
+
+        #resolutionContent blockquote {
+            border-left: 4px solid #dee2e6;
+            padding-left: 1rem;
+            margin: 1rem 0;
+            color: #6c757d;
         }        
+
+        /* Markdown end */        
 
         @media (max-width: 768px) {
             body {
@@ -390,6 +467,34 @@
             <button class="submit-btn" onclick="submitIssueDescription()" id="issueSubmitBtn" disabled>
                 Continue
             </button>
+        </div>
+        
+        <!-- Resolution Section (Hidden initially) -->
+        <div class="resolution-section" id="resolutionSection">
+            <h1 class="portal-title">Your Resolution</h1>
+            <div id="resolutionContent" style="background: #f8f9fa; padding: 1.5rem; border-radius: 8px; margin-bottom: 2rem; text-align: left; max-width: 600px;">
+                <!-- Resolution text will be populated here -->
+            </div>
+            <div id="emailSection" style="margin-bottom: 2rem;">
+                <h3 style="margin-bottom: 1rem; color: #212529;">Get Your Resolution by Email</h3>
+                <p style="color: #6c757d; margin-bottom: 1rem;">We'll send you a detailed copy of this resolution and follow up with any additional support you might need.</p>
+                <div style="margin-bottom: 1rem;">
+                    <label for="emailInput" style="display: block; margin-bottom: 0.5rem; color: #212529; font-weight: 500;">Email Address:</label>
+                    <input 
+                        type="email" 
+                        id="emailInput" 
+                        placeholder="Enter your email address"
+                        style="width: 100%; max-width: 400px; padding: 0.75rem; border: 2px solid #dee2e6; border-radius: 8px; font-size: 0.9rem;"
+                        oninput="validateEmail()"
+                    >
+                    <div id="emailError" style="color: #dc3545; font-size: 0.85rem; margin-top: 0.25rem; display: none;">
+                        Please enter a valid email address
+                    </div>
+                </div>
+            </div>
+            <button class="submit-btn" onclick="submitEmail()" id="emailSubmitBtn" disabled>
+                Send Resolution
+            </button>
         </div>        
 
         <!-- Results Section (Hidden initially) -->
@@ -428,13 +533,15 @@
                 { text: 'File Upload', stage: 'upload' },
                 { text: 'Product Selection', stage: 'products' },
                 { text: 'Describe Issues', stage: 'issues' },
-                { text: 'Submit Issue', stage: 'submit' },
+                { text: 'Resolution', stage: 'resolution' },
+//                { text: 'Submit Issue', stage: 'submit' },
                 { text: 'Complete', stage: 'complete' }
             ];
 
             statusContent.innerHTML = '';
             
-            const stageOrder = ['started', 'upload', 'products', 'issues', 'submit', 'complete'];
+            const stageOrder = ['started', 'upload', 'products', 'issues', 'resolution', 'complete'];
+//            const stageOrder = ['started', 'upload', 'products', 'issues', 'resolution','submit', 'complete'];
             const currentIndex = stageOrder.indexOf(currentStage);
             
             statuses.forEach((status, index) => {
@@ -469,8 +576,7 @@
         }        
 
         function showSection(sectionId) {
-            console.log('Showing section:', sectionId);
-            const sections = ['landingSection', 'uploadSection', 'progressSection', 'productSelectionSection', 'issueDescriptionSection', 'resultsSection'];
+            const sections = ['landingSection', 'uploadSection', 'progressSection', 'productSelectionSection', 'issueDescriptionSection', 'resolutionSection', 'resultsSection'];
             sections.forEach(id => {
                 const element = document.getElementById(id);
                 if (element) {
@@ -478,7 +584,6 @@
                 }
             });
         }
-
         // Initialize page state (Alternative Solution (if DOMContentLoaded doesn't work))
         // showSection('landingSection');
 
@@ -792,6 +897,8 @@
             }
         }
 
+        let issueDescription = null;
+
         async function submitIssueDescription() {
             if (!resumeUrl) {
                 addStatusUpdate('Error: No active workflow');
@@ -814,19 +921,20 @@
             showSection('progressSection');
             
             try {
+                if (hasTextInput) {
+                    issueDescription = [issueTextInput]; // Convert string to array
+                } else {
+                    issueDescription = selectedIssues; // Already an array
+                }
+        
                 const payload = {
                     selectedProduct: selectedProduct,
                     selectedSupportType: selectedSupportType,
+                    issueDescription: issueDescription,
                     sessionId: resumeUrl ? resumeUrl.split('/').pop() : null, // Extract session ID if available
                     action: 'submit_issue_description'
                 };
 
-                if (hasTextInput) {
-                    payload.issueDescription = issueTextInput;
-                } else {
-                    payload.selectedIssues = selectedIssues;
-                }         
-                    
                 const response = await fetch(`/api/resume-workflow?resumeUrl=${encodeURIComponent(resumeUrl)}`, {
                     method: 'POST',
                     headers: {
@@ -836,13 +944,145 @@
                 });
                 
                 const result = await response.json();
-                showFullStatusPanel('complete');
-                displayResults(result);
+
+                if (result && result[0] && result[0].resolution) {
+                    displayResolution(result[0]);
+                } else {
+                    showFullStatusPanel('complete');
+                    displayResults(result);
+                }
+
             } catch (error) {
                 console.error('Error submitting issue description:', error);
                 addStatusUpdate('Error: Failed to submit issue description');
             }
         }        
+
+        let userEmail = '';
+        let resolution = null;
+
+        function displayResolution(data) {
+            showFullStatusPanel('resolution');
+
+            // Reset email
+            userEmail = '';
+            
+            // Display resolution with proper header
+            const resolutionContent = document.getElementById('resolutionContent');
+            const renderedResolution = marked.parse(data.resolution);
+            resolution = data.resolution;
+            resolutionContent.innerHTML = `
+                <div style="line-height: 1.6;">${renderedResolution}</div>
+            `;            
+//            resolutionContent.innerHTML = `
+//                <h3 style="margin-bottom: 1rem; color: #212529; font-size: 1.2rem;">Resolution for ${data.selectedProduct}</h3>
+//                <div style="line-height: 1.6;">${renderedResolution}</div>
+//            `;
+
+            // Reset email input
+            const emailInput = document.getElementById('emailInput');
+            if (emailInput) {
+                emailInput.value = '';
+                emailInput.classList.remove('error');
+            }
+            
+            // Hide email error
+            const emailError = document.getElementById('emailError');
+            if (emailError) {
+                emailError.style.display = 'none';
+            }
+            
+            // Store resumeUrl for next step
+            if (data.resumeUrl) {
+                resumeUrl = data.resumeUrl;
+            }
+            
+            showSection('resolutionSection');
+            updateEmailSubmitButtonState();
+        }
+
+        function validateEmail() {
+            const emailInput = document.getElementById('emailInput');
+            const emailError = document.getElementById('emailError');
+            const email = emailInput.value.trim();
+            
+            // Email validation regex
+            const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+            const isValid = emailRegex.test(email);
+            
+            if (isValid) {
+                emailInput.classList.remove('error');
+                emailError.style.display = 'none';
+                userEmail = email;
+            } else {
+                emailInput.classList.add('error');
+                emailError.style.display = 'block';
+                userEmail = '';
+            }
+            
+            updateEmailSubmitButtonState();
+        }
+
+        function updateEmailSubmitButtonState() {
+            const submitBtn = document.getElementById('emailSubmitBtn');
+            const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+            const isValid = emailRegex.test(userEmail);
+            submitBtn.disabled = !isValid;
+        }
+
+        async function submitEmail() {
+            if (!resumeUrl || !userEmail) {
+                addStatusUpdate('Error: Please enter a valid email address');
+                return;
+            }
+            
+            // Final validation
+            const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+            if (!emailRegex.test(userEmail)) {
+                addStatusUpdate('Error: Please enter a valid email address');
+                return;
+            }
+            
+            showFullStatusPanel('resolution');
+            showSection('progressSection');
+            
+            try {
+                const response = await fetch(`/api/resume-workflow?resumeUrl=${encodeURIComponent(resumeUrl)}`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        email: userEmail,
+                        selectedProduct: selectedProduct,
+                        selectedSupportType: selectedSupportType,
+                        issueDescription: issueDescription,
+                        resolution: resolution,
+                        sessionId: resumeUrl ? resumeUrl.split('/').pop() : null, // Extract session ID if available
+                        action: 'submit_email'
+                    })
+                });
+                
+                const result = await response.json();
+                showFullStatusPanel('complete');
+                displayFinalConfirmation(result);
+            } catch (error) {
+                console.error('Error submitting email:', error);
+                addStatusUpdate('Error: Failed to submit email');
+            }
+        }
+
+        function displayFinalConfirmation(data) {
+            const resultsContent = document.getElementById('resultsContent');
+            resultsContent.innerHTML = `
+                <div style="background: #f8f9fa; padding: 1.5rem; border-radius: 8px; margin-bottom: 1rem;">
+                    <h3 style="margin-bottom: 1rem; color: #212529;">✅ Resolution Sent Successfully</h3>
+                    <p style="margin-bottom: 1rem;">Your resolution has been sent to <strong>${userEmail}</strong>.</p>
+                    <p style="color: #6c757d; font-size: 0.9rem;">You'll receive a detailed copy of your resolution and we'll follow up with any additional support you might need.</p>
+                </div>
+            `;
+            showSection('resultsSection');
+        }
 
         function resetToLanding() {
             resumeUrl = null;
@@ -851,6 +1091,7 @@
             selectedSupportType = null;
             selectedIssues = [];
             issueTextInput = '';
+            userEmail = '';
             updateSubmitButtonState();
             updateIssueSubmitButtonState();
             
@@ -909,17 +1150,6 @@
 
             // Reset status panel to show full panel with "Start Process" as current
             showFullStatusPanel('started');
-            
-            // Reset status panel to initial state
-            //const statusContent = document.getElementById('statusContent');
-            //if (statusContent) {
-            //    statusContent.innerHTML = `
-            //        <div class="status-item">
-            //            <div>Ready to process claims</div>
-            //            <div class="status-timestamp">System online</div>
-            //        </div>
-            //    `;
-            //}
         }
 
         // File upload handling
