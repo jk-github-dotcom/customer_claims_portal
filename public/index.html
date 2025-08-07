@@ -367,7 +367,15 @@
             color: #6c757d;
         }        
 
-        /* Markdown end */        
+        /* Markdown end */ 
+
+        /* file-input begin */
+        .file-input {
+            display: none !important;
+            position: absolute !important;
+            left: -9999px !important;
+        }       
+        /* file-input end*/
 
         @media (max-width: 768px) {
             body {
@@ -413,8 +421,7 @@
                     <div style="font-size: 1.1rem; margin-bottom: 2rem; color: #6c757d;">
                         Drag and drop your invoice here
                     </div>
-                    <input type="file" id="fileInput" class="file-input" multiple accept=".pdf,.jpg,.jpeg,.png,.doc,.docx">
-                    <button class="choose-file-btn" onclick="document.getElementById('fileInput').click()">
+                    <button class="choose-file-btn" onclick="openFileDialog()">
                         Choose File
                     </button>
                 </div>
@@ -511,7 +518,6 @@
 
     <script>
         let resumeUrl = null;
-        let selectedFiles = [];
 
         function addStatusUpdate(message) {
             const statusContent = document.getElementById('statusContent');
@@ -530,18 +536,16 @@
             const statusContent = document.getElementById('statusContent');
             const statuses = [
                 { text: 'Start Process', stage: 'started' },
-                { text: 'File Upload', stage: 'upload' },
-                { text: 'Product Selection', stage: 'products' },
-                { text: 'Describe Issues', stage: 'issues' },
-                { text: 'Resolution', stage: 'resolution' },
-//                { text: 'Submit Issue', stage: 'submit' },
+                { text: 'Upload Invoice', stage: 'upload' },
+                { text: 'Select Product and Support Type', stage: 'products' },
+                { text: 'Describe Request or Issue(s)', stage: 'issues' },
+                { text: 'Resolution and Next Steps', stage: 'resolution' },
                 { text: 'Complete', stage: 'complete' }
             ];
 
             statusContent.innerHTML = '';
             
             const stageOrder = ['started', 'upload', 'products', 'issues', 'resolution', 'complete'];
-//            const stageOrder = ['started', 'upload', 'products', 'issues', 'resolution','submit', 'complete'];
             const currentIndex = stageOrder.indexOf(currentStage);
             
             statuses.forEach((status, index) => {
@@ -959,7 +963,7 @@
         }        
 
         let userEmail = '';
-        let resolution = null;
+        let resolution = '';
 
         function displayResolution(data) {
             showFullStatusPanel('resolution');
@@ -974,10 +978,6 @@
             resolutionContent.innerHTML = `
                 <div style="line-height: 1.6;">${renderedResolution}</div>
             `;            
-//            resolutionContent.innerHTML = `
-//                <h3 style="margin-bottom: 1rem; color: #212529; font-size: 1.2rem;">Resolution for ${data.selectedProduct}</h3>
-//                <div style="line-height: 1.6;">${renderedResolution}</div>
-//            `;
 
             // Reset email input
             const emailInput = document.getElementById('emailInput');
@@ -1084,6 +1084,85 @@
             showSection('resultsSection');
         }
 
+        let selectedFiles = [];
+
+        function openFileDialog() {
+            console.log('Opening file dialog');
+            
+            // Create a fresh file input
+            const fileInput = document.createElement('input');
+            fileInput.type = 'file';
+            fileInput.multiple = true;
+            fileInput.accept = '.pdf,.jpg,.jpeg,.png,.doc,.docx';
+            fileInput.style.display = 'none';
+            
+            // Add change listener
+            fileInput.addEventListener('change', function(e) {
+                console.log('File selected:', e.target.files.length, 'files');
+                if (e.target.files.length > 0) {
+                    selectedFiles = Array.from(e.target.files);
+                    updateUploadDisplay();
+                    document.getElementById('submitBtn').disabled = false;
+                }
+            });
+            
+            // Add to DOM, click, then remove
+            document.body.appendChild(fileInput);
+            fileInput.click();
+            
+            // Clean up after a short delay
+            setTimeout(() => {
+                if (document.body.contains(fileInput)) {
+                    document.body.removeChild(fileInput);
+                }
+            }, 1000);
+        }
+
+        function updateUploadDisplay() {
+            const uploadArea = document.getElementById('uploadArea');
+            if (selectedFiles.length > 0) {
+                const fileName = selectedFiles[0].name;
+                uploadArea.innerHTML = `
+                    <div style="text-align: center;">
+                        <div style="font-size: 1.1rem; margin-bottom: 1rem; color: #28a745;">
+                            ✓ File selected
+                        </div>
+                        <div style="font-size: 0.9rem; color: #6c757d; margin-bottom: 2rem;">
+                            ${fileName}
+                        </div>
+                        <button class="choose-file-btn" onclick="openFileDialog()">
+                            Choose Different File
+                        </button>
+                    </div>
+                `;
+            }
+        }
+
+        // Drag and drop functionality
+        function setupDragAndDrop() {
+            const uploadArea = document.getElementById('uploadArea');
+            
+            uploadArea.addEventListener('dragover', (e) => {
+                e.preventDefault();
+                uploadArea.classList.add('dragover');
+            });
+
+            uploadArea.addEventListener('dragleave', () => {
+                uploadArea.classList.remove('dragover');
+            });
+
+            uploadArea.addEventListener('drop', (e) => {
+                e.preventDefault();
+                uploadArea.classList.remove('dragover');
+                console.log('Files dropped:', e.dataTransfer.files.length);
+                if (e.dataTransfer.files.length > 0) {
+                    selectedFiles = Array.from(e.dataTransfer.files);
+                    updateUploadDisplay();
+                    document.getElementById('submitBtn').disabled = false;
+                }
+            });
+        }
+
         function resetToLanding() {
             resumeUrl = null;
             selectedFiles = [];
@@ -1091,15 +1170,11 @@
             selectedSupportType = null;
             selectedIssues = [];
             issueTextInput = '';
+            issueDescription = null,
+            resolution = '',
             userEmail = '';
             updateSubmitButtonState();
             updateIssueSubmitButtonState();
-            
-            // Safely reset file input
-            const fileInput = document.getElementById('fileInput');
-            if (fileInput) {
-                fileInput.value = '';
-            }
             
             const progressFill = document.getElementById('progressFill');
             if (progressFill) {
@@ -1121,8 +1196,14 @@
             if (issueSubmitBtn) {
                 issueSubmitBtn.disabled = true;
             }
-            
-            // Reset upload area display
+
+            // Disable the eMail submit button
+            const emailSubmitBtn = document.getElementById('emailSubmitBtn');
+            if (emailSubmitBtn) {
+                emailSubmitBtn.disabled = true;
+            }            
+
+            // Reset upload area
             const uploadArea = document.getElementById('uploadArea');
             if (uploadArea) {
                 uploadArea.innerHTML = `
@@ -1130,81 +1211,22 @@
                         <div style="font-size: 1.1rem; margin-bottom: 2rem; color: #6c757d;">
                             Drag and drop your invoice here
                         </div>
-                        <input type="file" id="fileInput" class="file-input" multiple accept=".pdf,.jpg,.jpeg,.png,.doc,.docx">
-                        <button class="choose-file-btn" onclick="document.getElementById('fileInput').click()">
+                        <button class="choose-file-btn" onclick="openFileDialog()">
                             Choose File
                         </button>
                     </div>
                 `;
-                
-                // Re-attach event listeners for the new file input
-                const newFileInput = document.getElementById('fileInput');
-                if (newFileInput) {
-                    newFileInput.addEventListener('change', (e) => {
-                        handleFiles(e.target.files);
-                    });
-                }
-            }
-            
+            }            
             showSection('landingSection');
-
-            // Reset status panel to show full panel with "Start Process" as current
             showFullStatusPanel('started');
         }
 
-        // File upload handling
-        const uploadArea = document.getElementById('uploadArea');
-        const fileInput = document.getElementById('fileInput');
-
-        uploadArea.addEventListener('click', () => fileInput.click());
-        
-        uploadArea.addEventListener('dragover', (e) => {
-            e.preventDefault();
-            uploadArea.classList.add('dragover');
+        // Initialize drag and drop on page load
+        document.addEventListener('DOMContentLoaded', function() {
+            showSection('landingSection');
+            showFullStatusPanel('started');
+            setupDragAndDrop();
         });
-
-        uploadArea.addEventListener('dragleave', () => {
-            uploadArea.classList.remove('dragover');
-        });
-
-        uploadArea.addEventListener('drop', (e) => {
-            e.preventDefault();
-            uploadArea.classList.remove('dragover');
-            handleFiles(e.dataTransfer.files);
-        });
-
-        fileInput.addEventListener('change', (e) => {
-            handleFiles(e.target.files);
-        });
-
-        function handleFiles(files) {
-            selectedFiles = Array.from(files);
-            updateUploadDisplay();
-            
-            // Enable submit button when files are selected
-            const submitBtn = document.getElementById('submitBtn');
-            submitBtn.disabled = selectedFiles.length === 0;
-        }
-
-        function updateUploadDisplay() {
-            const uploadArea = document.getElementById('uploadArea');
-            if (selectedFiles.length > 0) {
-                const fileName = selectedFiles[0].name; // Show first file name
-                uploadArea.innerHTML = `
-                    <div style="text-align: center;">
-                        <div style="font-size: 1.1rem; margin-bottom: 1rem; color: #28a745;">
-                            ✓ File selected
-                        </div>
-                        <div style="font-size: 0.9rem; color: #6c757d; margin-bottom: 2rem;">
-                            ${fileName}
-                        </div>
-                        <button class="choose-file-btn" onclick="document.getElementById('fileInput').click()">
-                            Choose Different File
-                        </button>
-                    </div>
-                `;
-            }
-        }
 
         // Progress simulation
         function simulateProgress() {
@@ -1237,13 +1259,6 @@
                 }
             }, 800);
         }
-
-        // Initialize the page to show landing section
-        document.addEventListener('DOMContentLoaded', function() {
-            showSection('landingSection');
-            showFullStatusPanel('started'); // Show full panel with "Start Process" as current
-        });
-
     </script>
 </body>
 </html>
