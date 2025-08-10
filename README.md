@@ -59,6 +59,8 @@ and n8n workflow runs in another wait node to start the next cyle waiting for th
 
 ![N8N workflow v05](docs/N8N_2025-07-29_Customer_Claims_Portal_v05.jpg)
 
+![N8N workflow v06](docs/N8N_2025-07-29_Customer_Claims_Portal_v06.jpg)
+
 ![N8N Error Workflow](docs/N8N_2025_08_08_Error_Workflow.jpg)
 
 
@@ -136,7 +138,7 @@ Activate "N8N 2025-07-29 Customer Claims Portal"
 
 ## Next Steps
 
-- use AI agent to create a product specific issue list for issue selection (MacBook, USB-Adapter ...) with references
+- use AI agent to create a product specific issue list for issue selection (MacBook, USB-Adapter ...) with references and default template
 
 - Provide tool(s) (web search or RAG) for the issue resolution (code node for query?)
 
